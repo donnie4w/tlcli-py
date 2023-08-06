@@ -3,6 +3,7 @@ Copyright 2023 tldb Author. All Rights Reserved.
 email: donnie4w@gmail.com
 """
 import _thread
+import logging
 import ssl
 import threading
 import time
@@ -43,7 +44,7 @@ class client:
             self.pingNum = 0
             return self.Auth(self.auth)
         except Exception as e:
-            logging.error("connect error"+str(e))
+            logging.error("connect error" + str(e))
 
     def close(self) -> None:
         self.connid += 1
@@ -52,7 +53,7 @@ class client:
     def setTimeout(self, timeout):
         self.timeout = timeout
 
-    def newConnect(self,tls, host, port, auth) -> Ack:
+    def newConnect(self, tls, host, port, auth) -> Ack:
         self.tls, self.host, self.port, self.auth = tls, host, port, auth
         self.connid += 1
         ack = self.__connect()
@@ -110,9 +111,13 @@ class client:
         with self.lock:
             return self.conn.ShowAllTables()
 
-    def selectId(self, name)->int:
+    def selectId(self, name) -> int:
         with self.lock:
             return self.conn.SelectId(name)
+
+    def selectIdByIdx(self, name, column, value) -> int:
+        with self.lock:
+            return self.conn.SelectIdByIdx(name, column, value)
 
     def selectById(self, name, id):
         with self.lock:
@@ -168,7 +173,7 @@ class client:
                 if ack is not None and ack.ok:
                     self.pingNum -= 1
             except Exception as e:
-                print("ping error "+str(e))
+                print("ping error " + str(e))
             if self.pingNum > 5 and id == self.connid:
                 client.reconnect()
 
@@ -184,11 +189,12 @@ if __name__ == "__main__":
         6.删除表    truncate  
     """
     cli = client()
-    ack = cli.newConnect(True,"192.168.2.108", 7000, "mycli=123")
+    ack = cli.newConnect(False, "127.0.0.1", 7100, "mycli=123")
     logging.debug(ack)
     ab = cli.showAllTables()
     logging.debug(ab)
-    logging.debug(cli.selectId("user"))
+    logging.debug("max id>>"+str(cli.selectId("pyuser")))
+    logging.debug("max name id>>"+str(cli.selectIdByIdx("pyuser","name",bytearray("pyname", "utf-8"))))
     db = cli.selectById("user", 1)
     logging.debug(db)
     ack = cli.createTable("pyuser", ["name", "age", "level"], ["name", "age"])
