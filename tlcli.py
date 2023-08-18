@@ -3,14 +3,15 @@ Copyright 2023 tldb Author. All Rights Reserved.
 email: donnie4w@gmail.com
 """
 import _thread
-import logging
 import ssl
+import struct
 import threading
 import time
+
 from thrift.protocol import *
 from thrift.transport import *
 from thrift.transport.TSSLSocket import TSSLSocket
-
+from consts import *
 from Icli import *
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
@@ -40,11 +41,12 @@ class client:
             self.transport = TTransport.TBufferedTransport(socket)
             protocol = TCompactProtocol.TCompactProtocol(self.transport)
             self.conn = Client(protocol)
+            logging.debug("conn>>" + str(self.pingNum))
             self.transport.open()
             self.pingNum = 0
             return self.Auth(self.auth)
         except Exception as e:
-            logging.error("connect error" + str(e))
+            logging.error("connect error:" + str(e))
 
     def close(self) -> None:
         self.connid += 1
@@ -65,9 +67,9 @@ class client:
         if self.conn is not None:
             try:
                 self.transport.close()
-            finally:
+            except Exception as e:
                 pass
-        self.__connect()
+        self.newConnect(self.tls, self.host, self.port, self.auth)
 
     def Auth(self, _at) -> Ack:
         with self.lock:
@@ -80,8 +82,8 @@ class client:
     def createTable(self, name, columns, Idx):
         with self.lock:
             cm = {}
-            for cname in columns:
-                cm[cname] = bytearray()
+            for k, v in columns.items():
+                cm[k] = bytearray(v.value, "utf-8")
             im = None
             if Idx is not None:
                 im = {}
@@ -93,8 +95,8 @@ class client:
     def alterTable(self, name, columns, Idx):
         with self.lock:
             cm = {}
-            for cname in columns:
-                cm[cname] = bytearray()
+            for k, v in columns.items():
+                cm[k] = bytearray(v.value, "utf-8")
             im = None
             if Idx is not None:
                 im = {}
@@ -105,64 +107,107 @@ class client:
 
     def showTable(self, name):
         with self.lock:
-            return self.conn.ShowTable(name)
+            try:
+                return self.conn.ShowTable(name)
+            except Exception as e:
+                pass
 
     def showAllTables(self):
         with self.lock:
-            return self.conn.ShowAllTables()
+            try:
+                return self.conn.ShowAllTables()
+            except Exception as e:
+                pass
 
     def selectId(self, name) -> int:
         with self.lock:
-            return self.conn.SelectId(name)
+            try:
+                return self.conn.SelectId(name)
+            except Exception as e:
+                pass
 
     def selectIdByIdx(self, name, column, value) -> int:
         with self.lock:
-            return self.conn.SelectIdByIdx(name, column, value)
+            try:
+                return self.conn.SelectIdByIdx(name, column, value)
+            except Exception as e:
+                pass
 
     def selectById(self, name, id):
         with self.lock:
-            return self.conn.SelectById(name, id)
+            try:
+                return self.conn.SelectById(name, id)
+            except Exception as e:
+                pass
 
     def selectByIdx(self, name, column, value):
         with self.lock:
-            return self.conn.SelectByIdx(name, column, value)
+            try:
+                return self.conn.SelectByIdx(name, column, value)
+            except Exception as e:
+                pass
 
     def selectAllByIdx(self, name, column, value):
         with self.lock:
-            return self.conn.SelectAllByIdx(name, column, value)
+            try:
+                return self.conn.SelectAllByIdx(name, column, value)
+            except Exception as e:
+                pass
 
     def selectsByIdLimit(self, name, startId, limit):
         with self.lock:
-            return self.conn.SelectsByIdLimit(name, startId, limit)
+            try:
+                return self.conn.SelectsByIdLimit(name, startId, limit)
+            except Exception as e:
+                pass
 
     def selectByIdxLimit(self, name, column, value, startId, limit):
-        with self.lock:
-            return self.conn.SelectByIdxLimit(name, column, value, startId, limit)
+        if isinstance(value, list):
+            with self.lock:
+                try:
+                    return self.conn.SelectByIdxLimit(name, column, value, startId, limit)
+                except Exception as e:
+                    pass
+        else:
+            logging.error('value type error')
+
 
     def insert(self, name, columnMap):
         with self.lock:
-            cm = {}
-            for cname in columnMap:
-                cm[cname] = columnMap[cname]
-            tb = TableBean(name=name, columns=cm)
-            return self.conn.Insert(tb)
+            try:
+                cm = {}
+                for cname in columnMap:
+                    cm[cname] = columnMap[cname]
+                tb = TableBean(name=name, columns=cm)
+                return self.conn.Insert(tb)
+            except Exception as e:
+                pass
 
     def update(self, name, id, columnMap):
         with self.lock:
-            cm = {}
-            for cname in columnMap:
-                cm[cname] = columnMap[cname]
-            tb = TableBean(name=name, id=id, columns=cm)
-            return self.conn.Update(tb)
+            try:
+                cm = {}
+                for cname in columnMap:
+                    cm[cname] = columnMap[cname]
+                tb = TableBean(name=name, id=id, columns=cm)
+                return self.conn.Update(tb)
+            except Exception as e:
+                pass
 
     def delete(self, name, id):
         with self.lock:
-            tb = TableBean(name=name, id=id)
-            return self.conn.Delete(tb)
+            try:
+                tb = TableBean(name=name, id=id)
+                return self.conn.Delete(tb)
+            except Exception as e:
+                pass
 
     def drop(self, name):
         with self.lock:
-            return self.conn.Drop(name)
+            try:
+                return self.conn.Drop(name)
+            except Exception as e:
+                pass
 
     def timer(self, id):
         while id == self.connid:
@@ -173,9 +218,9 @@ class client:
                 if ack is not None and ack.ok:
                     self.pingNum -= 1
             except Exception as e:
-                print("ping error " + str(e))
+                print("ping error:" + str(e))
             if self.pingNum > 5 and id == self.connid:
-                client.reconnect()
+                self.reconnect()
 
 
 if __name__ == "__main__":
@@ -189,37 +234,44 @@ if __name__ == "__main__":
         6.删除表    truncate  
     """
     cli = client()
-    ack = cli.newConnect(False, "127.0.0.1", 7100, "mycli=123")
+    ack = cli.newConnect(True, "127.0.0.1", 7100, "mycli=123")
     logging.debug(ack)
     ab = cli.showAllTables()
-    logging.debug(ab)
-    logging.debug("max id>>"+str(cli.selectId("pyuser")))
-    logging.debug("max name id>>"+str(cli.selectIdByIdx("pyuser","name",bytearray("pyname", "utf-8"))))
-    db = cli.selectById("user", 1)
-    logging.debug(db)
-    ack = cli.createTable("pyuser", ["name", "age", "level"], ["name", "age"])
-    logging.debug(ack)
-    for i in range(11):
+    # logging.debug(ab)
+    ack = cli.createTable("pyuser", {"name": ColumnType.STRING, "age": ColumnType.INT64, "level": ColumnType.FLOAT64},
+                          ["name", "level"])
+    # logging.debug(ack)
+
+    for i in range(10):
+        j = i + 0.1
         ab = cli.insert("pyuser",
-                        {"name": bytearray("pyname" + str(i), "utf-8"), "age": bytearray(str(10 + i), "utf-8"),
-                         "level": bytearray(str(100 + i), "utf-8")})
+                        {"name": bytearray("pyname" + str(i), "utf-8"), "age": i.to_bytes(8, 'big'),
+                         "level": struct.pack('>f', j)})
 
-    ab = cli.update("pyuser", 1, {"name": bytearray("pyname", "utf-8"), "age": bytearray("20", "utf-8"),
-                                  "level": bytearray("120", "utf-8")})
-    logging.debug(ab)
+    logging.debug(cli.selectId("pyuser"))
+    logging.debug(cli.selectIdByIdx("pyuser", "name", bytearray("pyname0", "utf-8")))
 
-    ab = cli.delete("pyuser", 3)  # 删除id=3的数据
-    logging.debug(ab)
+    db = cli.selectById("pyuser", 1)
+    logging.debug(db)
 
-    ldb = cli.selectByIdxLimit("pyuser", "age", [bytearray("10", "utf-8"), bytearray("20", "utf-8")], 0, 10)
-    for db in ldb:
-        logging.debug(db)
+    age, level = 20, 11.1
+    ab = cli.update("pyuser", 1, {"name": bytearray("pyname", "utf-8"), "age": age.to_bytes(8, 'big'),
+                                  "level": struct.pack('>f', level)})
 
-    logging.debug("\n")
+    # logging.debug(ab)
+    # ab = cli.delete("pyuser", 3)  # 删除id=3的数据
+    # logging.debug(ab)
+    logging.debug("——————————————————————————————————————————————————————————————————————")
+    ldb = cli.selectByIdxLimit("pyuser", "name", [bytearray("pyname0", "utf-8")], 0, 10)
+    if ldb is not None:
+        for db in ldb:
+            logging.debug(db)
+
+    logging.debug("———————————————————————————————————————>")
     ldb = cli.selectsByIdLimit("pyuser", 0, 5)
-    for db in ldb:
-        logging.debug(db)
+    if ldb is not None:
+        for db in ldb:
+            logging.debug(db)
 
     # ab = cli.drop("pyuser")  #删除表
-    logging.debug(ab)
     time.sleep(10000)
