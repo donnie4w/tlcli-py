@@ -163,6 +163,39 @@ class Iface(object):
     def ShowAllTables(self):
         pass
 
+    def DeleteBatch(self, name, ids):
+        """
+        Parameters:
+         - name
+         - ids
+
+        """
+        pass
+
+    def SelectByIdxDescLimit(self, name, column, value, startId, limit):
+        """
+        Parameters:
+         - name
+         - column
+         - value
+         - startId
+         - limit
+
+        """
+        pass
+
+    def SelectByIdxAscLimit(self, name, column, value, startId, limit):
+        """
+        Parameters:
+         - name
+         - column
+         - value
+         - startId
+         - limit
+
+        """
+        pass
+
 
 class Client(Iface):
     def __init__(self, iprot, oprot=None):
@@ -735,6 +768,120 @@ class Client(Iface):
             return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "ShowAllTables failed: unknown result")
 
+    def DeleteBatch(self, name, ids):
+        """
+        Parameters:
+         - name
+         - ids
+
+        """
+        self.send_DeleteBatch(name, ids)
+        return self.recv_DeleteBatch()
+
+    def send_DeleteBatch(self, name, ids):
+        self._oprot.writeMessageBegin('DeleteBatch', TMessageType.CALL, self._seqid)
+        args = DeleteBatch_args()
+        args.name = name
+        args.ids = ids
+        args.write(self._oprot)
+        self._oprot.writeMessageEnd()
+        self._oprot.trans.flush()
+
+    def recv_DeleteBatch(self):
+        iprot = self._iprot
+        (fname, mtype, rseqid) = iprot.readMessageBegin()
+        if mtype == TMessageType.EXCEPTION:
+            x = TApplicationException()
+            x.read(iprot)
+            iprot.readMessageEnd()
+            raise x
+        result = DeleteBatch_result()
+        result.read(iprot)
+        iprot.readMessageEnd()
+        if result.success is not None:
+            return result.success
+        raise TApplicationException(TApplicationException.MISSING_RESULT, "DeleteBatch failed: unknown result")
+
+    def SelectByIdxDescLimit(self, name, column, value, startId, limit):
+        """
+        Parameters:
+         - name
+         - column
+         - value
+         - startId
+         - limit
+
+        """
+        self.send_SelectByIdxDescLimit(name, column, value, startId, limit)
+        return self.recv_SelectByIdxDescLimit()
+
+    def send_SelectByIdxDescLimit(self, name, column, value, startId, limit):
+        self._oprot.writeMessageBegin('SelectByIdxDescLimit', TMessageType.CALL, self._seqid)
+        args = SelectByIdxDescLimit_args()
+        args.name = name
+        args.column = column
+        args.value = value
+        args.startId = startId
+        args.limit = limit
+        args.write(self._oprot)
+        self._oprot.writeMessageEnd()
+        self._oprot.trans.flush()
+
+    def recv_SelectByIdxDescLimit(self):
+        iprot = self._iprot
+        (fname, mtype, rseqid) = iprot.readMessageBegin()
+        if mtype == TMessageType.EXCEPTION:
+            x = TApplicationException()
+            x.read(iprot)
+            iprot.readMessageEnd()
+            raise x
+        result = SelectByIdxDescLimit_result()
+        result.read(iprot)
+        iprot.readMessageEnd()
+        if result.success is not None:
+            return result.success
+        raise TApplicationException(TApplicationException.MISSING_RESULT, "SelectByIdxDescLimit failed: unknown result")
+
+    def SelectByIdxAscLimit(self, name, column, value, startId, limit):
+        """
+        Parameters:
+         - name
+         - column
+         - value
+         - startId
+         - limit
+
+        """
+        self.send_SelectByIdxAscLimit(name, column, value, startId, limit)
+        return self.recv_SelectByIdxAscLimit()
+
+    def send_SelectByIdxAscLimit(self, name, column, value, startId, limit):
+        self._oprot.writeMessageBegin('SelectByIdxAscLimit', TMessageType.CALL, self._seqid)
+        args = SelectByIdxAscLimit_args()
+        args.name = name
+        args.column = column
+        args.value = value
+        args.startId = startId
+        args.limit = limit
+        args.write(self._oprot)
+        self._oprot.writeMessageEnd()
+        self._oprot.trans.flush()
+
+    def recv_SelectByIdxAscLimit(self):
+        iprot = self._iprot
+        (fname, mtype, rseqid) = iprot.readMessageBegin()
+        if mtype == TMessageType.EXCEPTION:
+            x = TApplicationException()
+            x.read(iprot)
+            iprot.readMessageEnd()
+            raise x
+        result = SelectByIdxAscLimit_result()
+        result.read(iprot)
+        iprot.readMessageEnd()
+        if result.success is not None:
+            return result.success
+        raise TApplicationException(TApplicationException.MISSING_RESULT, "SelectByIdxAscLimit failed: unknown result")
+
 
 class Processor(Iface, TProcessor):
     def __init__(self, handler):
@@ -757,6 +904,9 @@ class Processor(Iface, TProcessor):
         self._processMap["Insert"] = Processor.process_Insert
         self._processMap["ShowTable"] = Processor.process_ShowTable
         self._processMap["ShowAllTables"] = Processor.process_ShowAllTables
+        self._processMap["DeleteBatch"] = Processor.process_DeleteBatch
+        self._processMap["SelectByIdxDescLimit"] = Processor.process_SelectByIdxDescLimit
+        self._processMap["SelectByIdxAscLimit"] = Processor.process_SelectByIdxAscLimit
         self._on_message_begin = None
 
     def on_message_begin(self, func):
@@ -1166,6 +1316,75 @@ class Processor(Iface, TProcessor):
             msg_type = TMessageType.EXCEPTION
             result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
         oprot.writeMessageBegin("ShowAllTables", msg_type, seqid)
+        result.write(oprot)
+        oprot.writeMessageEnd()
+        oprot.trans.flush()
+
+    def process_DeleteBatch(self, seqid, iprot, oprot):
+        args = DeleteBatch_args()
+        args.read(iprot)
+        iprot.readMessageEnd()
+        result = DeleteBatch_result()
+        try:
+            result.success = self._handler.DeleteBatch(args.name, args.ids)
+            msg_type = TMessageType.REPLY
+        except TTransport.TTransportException:
+            raise
+        except TApplicationException as ex:
+            logging.exception('TApplication exception in handler')
+            msg_type = TMessageType.EXCEPTION
+            result = ex
+        except Exception:
+            logging.exception('Unexpected exception in handler')
+            msg_type = TMessageType.EXCEPTION
+            result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
+        oprot.writeMessageBegin("DeleteBatch", msg_type, seqid)
+        result.write(oprot)
+        oprot.writeMessageEnd()
+        oprot.trans.flush()
+
+    def process_SelectByIdxDescLimit(self, seqid, iprot, oprot):
+        args = SelectByIdxDescLimit_args()
+        args.read(iprot)
+        iprot.readMessageEnd()
+        result = SelectByIdxDescLimit_result()
+        try:
+            result.success = self._handler.SelectByIdxDescLimit(args.name, args.column, args.value, args.startId, args.limit)
+            msg_type = TMessageType.REPLY
+        except TTransport.TTransportException:
+            raise
+        except TApplicationException as ex:
+            logging.exception('TApplication exception in handler')
+            msg_type = TMessageType.EXCEPTION
+            result = ex
+        except Exception:
+            logging.exception('Unexpected exception in handler')
+            msg_type = TMessageType.EXCEPTION
+            result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
+        oprot.writeMessageBegin("SelectByIdxDescLimit", msg_type, seqid)
+        result.write(oprot)
+        oprot.writeMessageEnd()
+        oprot.trans.flush()
+
+    def process_SelectByIdxAscLimit(self, seqid, iprot, oprot):
+        args = SelectByIdxAscLimit_args()
+        args.read(iprot)
+        iprot.readMessageEnd()
+        result = SelectByIdxAscLimit_result()
+        try:
+            result.success = self._handler.SelectByIdxAscLimit(args.name, args.column, args.value, args.startId, args.limit)
+            msg_type = TMessageType.REPLY
+        except TTransport.TTransportException:
+            raise
+        except TApplicationException as ex:
+            logging.exception('TApplication exception in handler')
+            msg_type = TMessageType.EXCEPTION
+            result = ex
+        except Exception:
+            logging.exception('Unexpected exception in handler')
+            msg_type = TMessageType.EXCEPTION
+            result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
+        oprot.writeMessageBegin("SelectByIdxAscLimit", msg_type, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
@@ -3458,6 +3677,510 @@ class ShowAllTables_result(object):
 all_structs.append(ShowAllTables_result)
 ShowAllTables_result.thrift_spec = (
     (0, TType.LIST, 'success', (TType.STRUCT, [TableBean, None], False), None, ),  # 0
+)
+
+
+class DeleteBatch_args(object):
+    """
+    Attributes:
+     - name
+     - ids
+
+    """
+
+
+    def __init__(self, name=None, ids=None,):
+        self.name = name
+        self.ids = ids
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 1:
+                if ftype == TType.STRING:
+                    self.name = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 2:
+                if ftype == TType.LIST:
+                    self.ids = []
+                    (_etype65, _size62) = iprot.readListBegin()
+                    for _i66 in range(_size62):
+                        _elem67 = iprot.readI64()
+                        self.ids.append(_elem67)
+                    iprot.readListEnd()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('DeleteBatch_args')
+        if self.name is not None:
+            oprot.writeFieldBegin('name', TType.STRING, 1)
+            oprot.writeString(self.name.encode('utf-8') if sys.version_info[0] == 2 else self.name)
+            oprot.writeFieldEnd()
+        if self.ids is not None:
+            oprot.writeFieldBegin('ids', TType.LIST, 2)
+            oprot.writeListBegin(TType.I64, len(self.ids))
+            for iter68 in self.ids:
+                oprot.writeI64(iter68)
+            oprot.writeListEnd()
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+all_structs.append(DeleteBatch_args)
+DeleteBatch_args.thrift_spec = (
+    None,  # 0
+    (1, TType.STRING, 'name', 'UTF8', None, ),  # 1
+    (2, TType.LIST, 'ids', (TType.I64, None, False), None, ),  # 2
+)
+
+
+class DeleteBatch_result(object):
+    """
+    Attributes:
+     - success
+
+    """
+
+
+    def __init__(self, success=None,):
+        self.success = success
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 0:
+                if ftype == TType.STRUCT:
+                    self.success = AckBean()
+                    self.success.read(iprot)
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('DeleteBatch_result')
+        if self.success is not None:
+            oprot.writeFieldBegin('success', TType.STRUCT, 0)
+            self.success.write(oprot)
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+all_structs.append(DeleteBatch_result)
+DeleteBatch_result.thrift_spec = (
+    (0, TType.STRUCT, 'success', [AckBean, None], None, ),  # 0
+)
+
+
+class SelectByIdxDescLimit_args(object):
+    """
+    Attributes:
+     - name
+     - column
+     - value
+     - startId
+     - limit
+
+    """
+
+
+    def __init__(self, name=None, column=None, value=None, startId=None, limit=None,):
+        self.name = name
+        self.column = column
+        self.value = value
+        self.startId = startId
+        self.limit = limit
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 1:
+                if ftype == TType.STRING:
+                    self.name = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 2:
+                if ftype == TType.STRING:
+                    self.column = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 3:
+                if ftype == TType.STRING:
+                    self.value = iprot.readBinary()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 4:
+                if ftype == TType.I64:
+                    self.startId = iprot.readI64()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 5:
+                if ftype == TType.I64:
+                    self.limit = iprot.readI64()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('SelectByIdxDescLimit_args')
+        if self.name is not None:
+            oprot.writeFieldBegin('name', TType.STRING, 1)
+            oprot.writeString(self.name.encode('utf-8') if sys.version_info[0] == 2 else self.name)
+            oprot.writeFieldEnd()
+        if self.column is not None:
+            oprot.writeFieldBegin('column', TType.STRING, 2)
+            oprot.writeString(self.column.encode('utf-8') if sys.version_info[0] == 2 else self.column)
+            oprot.writeFieldEnd()
+        if self.value is not None:
+            oprot.writeFieldBegin('value', TType.STRING, 3)
+            oprot.writeBinary(self.value)
+            oprot.writeFieldEnd()
+        if self.startId is not None:
+            oprot.writeFieldBegin('startId', TType.I64, 4)
+            oprot.writeI64(self.startId)
+            oprot.writeFieldEnd()
+        if self.limit is not None:
+            oprot.writeFieldBegin('limit', TType.I64, 5)
+            oprot.writeI64(self.limit)
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+all_structs.append(SelectByIdxDescLimit_args)
+SelectByIdxDescLimit_args.thrift_spec = (
+    None,  # 0
+    (1, TType.STRING, 'name', 'UTF8', None, ),  # 1
+    (2, TType.STRING, 'column', 'UTF8', None, ),  # 2
+    (3, TType.STRING, 'value', 'BINARY', None, ),  # 3
+    (4, TType.I64, 'startId', None, None, ),  # 4
+    (5, TType.I64, 'limit', None, None, ),  # 5
+)
+
+
+class SelectByIdxDescLimit_result(object):
+    """
+    Attributes:
+     - success
+
+    """
+
+
+    def __init__(self, success=None,):
+        self.success = success
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 0:
+                if ftype == TType.LIST:
+                    self.success = []
+                    (_etype72, _size69) = iprot.readListBegin()
+                    for _i73 in range(_size69):
+                        _elem74 = DataBean()
+                        _elem74.read(iprot)
+                        self.success.append(_elem74)
+                    iprot.readListEnd()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('SelectByIdxDescLimit_result')
+        if self.success is not None:
+            oprot.writeFieldBegin('success', TType.LIST, 0)
+            oprot.writeListBegin(TType.STRUCT, len(self.success))
+            for iter75 in self.success:
+                iter75.write(oprot)
+            oprot.writeListEnd()
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+all_structs.append(SelectByIdxDescLimit_result)
+SelectByIdxDescLimit_result.thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT, [DataBean, None], False), None, ),  # 0
+)
+
+
+class SelectByIdxAscLimit_args(object):
+    """
+    Attributes:
+     - name
+     - column
+     - value
+     - startId
+     - limit
+
+    """
+
+
+    def __init__(self, name=None, column=None, value=None, startId=None, limit=None,):
+        self.name = name
+        self.column = column
+        self.value = value
+        self.startId = startId
+        self.limit = limit
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 1:
+                if ftype == TType.STRING:
+                    self.name = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 2:
+                if ftype == TType.STRING:
+                    self.column = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 3:
+                if ftype == TType.STRING:
+                    self.value = iprot.readBinary()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 4:
+                if ftype == TType.I64:
+                    self.startId = iprot.readI64()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 5:
+                if ftype == TType.I64:
+                    self.limit = iprot.readI64()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('SelectByIdxAscLimit_args')
+        if self.name is not None:
+            oprot.writeFieldBegin('name', TType.STRING, 1)
+            oprot.writeString(self.name.encode('utf-8') if sys.version_info[0] == 2 else self.name)
+            oprot.writeFieldEnd()
+        if self.column is not None:
+            oprot.writeFieldBegin('column', TType.STRING, 2)
+            oprot.writeString(self.column.encode('utf-8') if sys.version_info[0] == 2 else self.column)
+            oprot.writeFieldEnd()
+        if self.value is not None:
+            oprot.writeFieldBegin('value', TType.STRING, 3)
+            oprot.writeBinary(self.value)
+            oprot.writeFieldEnd()
+        if self.startId is not None:
+            oprot.writeFieldBegin('startId', TType.I64, 4)
+            oprot.writeI64(self.startId)
+            oprot.writeFieldEnd()
+        if self.limit is not None:
+            oprot.writeFieldBegin('limit', TType.I64, 5)
+            oprot.writeI64(self.limit)
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+all_structs.append(SelectByIdxAscLimit_args)
+SelectByIdxAscLimit_args.thrift_spec = (
+    None,  # 0
+    (1, TType.STRING, 'name', 'UTF8', None, ),  # 1
+    (2, TType.STRING, 'column', 'UTF8', None, ),  # 2
+    (3, TType.STRING, 'value', 'BINARY', None, ),  # 3
+    (4, TType.I64, 'startId', None, None, ),  # 4
+    (5, TType.I64, 'limit', None, None, ),  # 5
+)
+
+
+class SelectByIdxAscLimit_result(object):
+    """
+    Attributes:
+     - success
+
+    """
+
+
+    def __init__(self, success=None,):
+        self.success = success
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 0:
+                if ftype == TType.LIST:
+                    self.success = []
+                    (_etype79, _size76) = iprot.readListBegin()
+                    for _i80 in range(_size76):
+                        _elem81 = DataBean()
+                        _elem81.read(iprot)
+                        self.success.append(_elem81)
+                    iprot.readListEnd()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('SelectByIdxAscLimit_result')
+        if self.success is not None:
+            oprot.writeFieldBegin('success', TType.LIST, 0)
+            oprot.writeListBegin(TType.STRUCT, len(self.success))
+            for iter82 in self.success:
+                iter82.write(oprot)
+            oprot.writeListEnd()
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+all_structs.append(SelectByIdxAscLimit_result)
+SelectByIdxAscLimit_result.thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT, [DataBean, None], False), None, ),  # 0
 )
 fix_spec(all_structs)
 del all_structs
