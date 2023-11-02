@@ -171,7 +171,6 @@ class client:
         else:
             logging.error('value type error')
 
-
     def insert(self, name, columnMap):
         with self.lock:
             try:
@@ -209,6 +208,52 @@ class client:
             except Exception as e:
                 pass
 
+    def deleteBatch(self, name, *ids):
+        """
+        Parameters:
+         - name
+         - ids
+        """
+        with self.lock:
+            try:
+                return self.conn.DeleteBatch(name, ids)
+            except Exception as e:
+                pass
+
+    def selectByIdxDescLimit(self, name, column, value, startId, limit):
+        """
+        Parameters:
+         - name
+         - column
+         - value
+         - startId
+         - limit
+        Index fields that are updated frequently are not suitable for this method and may result in sorting errors
+        频繁更新的索引字段不适合此方法，并且可能导致排序错误
+        """
+        with self.lock:
+            try:
+                return self.conn.SelectByIdxDescLimit(name, column, value, startId, limit)
+            except Exception as e:
+                pass
+
+    def selectByIdxAscLimit(self, name, column, value, startId, limit):
+        """
+        Parameters:
+         - name
+         - column
+         - value
+         - startId
+         - limit
+        Index fields that are updated frequently are not suitable for this method and may result in sorting errors
+        频繁更新的索引字段不适合此方法，并且可能导致排序错误
+        """
+        with self.lock:
+            try:
+                return self.conn.SelectByIdxAscLimit(name, column, value, startId, limit)
+            except Exception as e:
+                pass
+
     def timer(self, id):
         while id == self.connid:
             time.sleep(3)
@@ -234,44 +279,8 @@ if __name__ == "__main__":
         6.删除表    truncate  
     """
     cli = client()
-    ack = cli.newConnect(True, "127.0.0.1", 7100, "mycli=123")
-    logging.debug(ack)
+    ack = cli.newConnect(True, "127.0.0.1", 3336, "mycli=123")
+    print(ack)
     ab = cli.showAllTables()
-    # logging.debug(ab)
-    ack = cli.createTable("pyuser", {"name": ColumnType.STRING, "age": ColumnType.INT64, "level": ColumnType.FLOAT64},
-                          ["name", "level"])
-    # logging.debug(ack)
-
-    for i in range(10):
-        j = i + 0.1
-        ab = cli.insert("pyuser",
-                        {"name": bytearray("pyname" + str(i), "utf-8"), "age": i.to_bytes(8, 'big'),
-                         "level": struct.pack('>f', j)})
-
-    logging.debug(cli.selectId("pyuser"))
-    logging.debug(cli.selectIdByIdx("pyuser", "name", bytearray("pyname0", "utf-8")))
-
-    db = cli.selectById("pyuser", 1)
-    logging.debug(db)
-
-    age, level = 20, 11.1
-    ab = cli.update("pyuser", 1, {"name": bytearray("pyname", "utf-8"), "age": age.to_bytes(8, 'big'),
-                                  "level": struct.pack('>f', level)})
-
-    # logging.debug(ab)
-    # ab = cli.delete("pyuser", 3)  # 删除id=3的数据
-    # logging.debug(ab)
-    logging.debug("——————————————————————————————————————————————————————————————————————")
-    ldb = cli.selectByIdxLimit("pyuser", "name", [bytearray("pyname0", "utf-8")], 0, 10)
-    if ldb is not None:
-        for db in ldb:
-            logging.debug(db)
-
-    logging.debug("———————————————————————————————————————>")
-    ldb = cli.selectsByIdLimit("pyuser", 0, 5)
-    if ldb is not None:
-        for db in ldb:
-            logging.debug(db)
-
-    # ab = cli.drop("pyuser")  #删除表
-    time.sleep(10000)
+    print(ab)
+    time.sleep(600)
